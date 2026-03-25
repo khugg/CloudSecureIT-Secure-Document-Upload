@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CloudSecureIT - submissions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #222;
+        }
+
+        p {
+            color: #555;
+        }
+
+        .actions {
+            margin-bottom: 20px;
+        }
+
+        .actions a {
+            text-decoration: none;
+            color: white;
+            background: #0078d4;
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .actions a:hover {
+            background: #005ea6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #f0f4f8;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .empty-state {
+            padding: 20px;
+            background: #fff7e6;
+            border-left: 4px solid #ffb020;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .error {
+            padding: 20px;
+            background: #ffecec;
+            border-left: 4px solid #d8000c;
+            border-radius: 6px;
+            margin-top: 20px;
+            color: #b00020;
+        }
+
+        a.file-link {
+            color: #0078d4;
+            word-break: break-all;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Submissions</h1>
+        <p> This page displays the documents submitted via the CloudSecureIT form.</p>
+
+        <div class="actions">
+            <a href="/">Back to Form</a>
+        </div>
+
+        <div id="content"></div>
+    </div>
+
+    <script>
+        async function loadSubmissions() {
+            const content = document.getElementById("content");
+
+            try {
+                const response = await fetch("/submissions");
+                const submissions = await response.json();
+
+                if (!response.ok) {
+                    throw new Error("Failed to load submissions" );
+                }
+
+                if (!Array.isArray(submissions) || submissions.length === 0) {
+                    content.innerHTML = `
+            <div class="empty-state">
+                No submissions found. Please submit a document first.
+            </div>
+          `;
+                    return;
+                }
+
+                const rows = submissions.map(item => `
+          <tr>
+            <td>${item.firstName}</td>
+            <td>${item.lastName}</td>
+            <td>${item.email}</td>
+            <td>${item.documentType}</td>
+            <td>${item.originalFileName}</td>
+            <td>${new Date(item.submittedAt).toLocaleString()}</td>
+            <td>
+              <a class="file-link" href="${item.fileUrl}" target="_blank">Ouvrir le document</a>
+            </td>
+          </tr>
+        `).join("");
+
+                content.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Type</th>
+                <th>Original File Name</th>
+                <th>Submitted At</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        `;
+            } catch (error) {
+                content.innerHTML = `
+          <div class="error">
+            ${error.message}
+          </div>
+        `;
+            }
+        }
+
+        loadSubmissions();
+    </script>
+</body>
+
+</html>
