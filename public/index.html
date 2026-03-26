@@ -2,93 +2,94 @@
 <html lang="fr">
 
 <head>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2921/2921222.png">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CloudSecureIT - Upload a document</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            margin: 0;
-            padding: 0;
-        }
+     body {
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  margin: 0;
+}
 
-        .container {
-            width: 90%;
-            max-width: 600px;
-            margin: 50px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
+.container {
+  max-width: 600px;
+  margin: 60px auto;
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #222;
-        }
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
-            font-weight: bold;
-        }
+.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 25px;
+}
 
-        input,
-        select,
-        button {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 15px;
+}
 
-        button {
-            background: #0078d4;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
+input, select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
 
-        button:hover {
-            background: #005ea6;
-        }
+button {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
 
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            background: #eef6ff;
-            border-left: 4px solid #0078d4;
-            border-radius: 6px;
-            display: none;
-        }
+button:hover {
+  background: #005fa3;
+}
 
-        #result a {
-            color: #0078d4;
-            word-break: break-all;
-        }
 
-        #error {
-            margin-top: 20px;
-            padding: 15px;
-            background: #ffecec;
-            border-left: 4px solid #d8000c;
-            border-radius: 6px;
-            color: #b00020;
-            display: none;
-        }
+.secure-link {
+  color: #0078d4;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.secure-link:hover {
+  text-decoration: underline;
+}
+
+.success {
+  margin-top: 20px;
+  padding: 20px;
+  background: #eaf4ff;
+  border-left: 5px solid #0078d4;
+  border-radius: 8px;
+  word-wrap: break-word;
+}
+
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Upload a Document</h1>
+        <h1>CloudSecureIT - Secure Document Upload</h1>
+        <p class="subtitle">Upload and securely store your documents in the cloud</p>
 
         <form id="uploadForm">
             <label for="firstName">First Name</label>
@@ -151,14 +152,18 @@
                 }
 
                 resultDiv.style.display = "block";
-     resultDiv.innerHTML = `
-  <p><strong>${data.message}</strong></p>
-  <p>First Name : ${data.user.firstName}</p>
-  <p>Last Name : ${data.user.lastName}</p>
-  <p>Email : ${data.user.email}</p>
-  <p>Document Type : ${data.user.documentType}</p>
-  <p>File Name : ${data.fileName}</p>
-  <p>Secure Link : <a href="${data.fileUrl}" target="_blank">${data.fileUrl}</a></p>
+   resultDiv.innerHTML = `
+  <div class="success">
+    <h2>Upload Successful</h2>
+    <p><strong>First Name:</strong> ${data.user.firstName}</p>
+    <p><strong>Last Name:</strong> ${data.user.lastName}</p>
+    <p><strong>Email:</strong> ${data.user.email}</p>
+    <p><strong>Document Type:</strong> ${data.user.documentType}</p>
+    <p><strong>File Name:</strong> ${data.fileName}</p>
+    <p><strong>Secure Link:</strong> 
+      <a class="secure-link" href="${data.fileUrl}" target="_blank">Access your document</a>
+    </p>
+  </div>
 `;
 
                 form.reset();

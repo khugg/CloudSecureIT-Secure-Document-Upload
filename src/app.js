@@ -1,6 +1,12 @@
 
 require("dotenv").config();
-const { BlobServiceClient } = require("@azure/storage-blob");
+
+const {
+  BlobServiceClient,
+  StorageSharedKeyCredential,
+  generateBlobSASQueryParameters,
+  BlobSASPermissions
+} = require("@azure/storage-blob");
 
 
 const express = require("express");
@@ -12,6 +18,10 @@ const fs = require("fs");
 const app = express();
 
 
+
+
+const accountName = process.env.AZURE_STORAGE_ACCOUNT_NAME;
+const accountKey = process.env.AZURE_STORAGE_ACCOUNT_KEY;
 const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
 const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "documents";
 
@@ -27,10 +37,6 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 
 
-// create uploads if they don't exist
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
 
 // create data if they don't exist
 if (!fs.existsSync("data")) {
@@ -51,28 +57,41 @@ const upload = multer({ storage });
 
 async function uploadToAzure(file) {
   const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
-
   const containerClient = blobServiceClient.getContainerClient(containerName);
 
   await containerClient.createIfNotExists();
 
   const blobName = Date.now() + "-" + file.originalname;
-
   const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
   await blockBlobClient.uploadData(file.buffer);
 
-  return blockBlobClient.url;
+   return {
+    url: blockBlobClient.url,
+    blobName
+  };
 }
 
 
+function generateSasUrl(blobName) {
+  const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
 
+  const startsOn = new Date(Date.now() - 5 * 60 * 1000);
+  const expiresOn = new Date(Date.now() + 60 * 60 * 1000);
 
+  const sasToken = generateBlobSASQueryParameters(
+    {
+      containerName,
+      blobName,
+      permissions: BlobSASPermissions.parse("r"),
+      startsOn,
+      expiresOn
+    },
+    sharedKeyCredential
+  ).toString();
 
-
-
-
-
+  return `https://${accountName}.blob.core.windows.net/${containerName}/${blobName}?${sasToken}`;
+}
 
 
 
@@ -97,8 +116,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     }
 
 
-
-const fileUrl = await uploadToAzure(file);
+const uploadResult = await uploadToAzure(file);
+const fileUrl = uploadResult.url;
+const sasUrl = generateSasUrl(uploadResult.blobName);
 
     const newSubmission = {
       id: Date.now(),
@@ -107,8 +127,9 @@ const fileUrl = await uploadToAzure(file);
       email,
       documentType,
       originalFileName: file.originalname,
-      storedFileName: file.originalname,
+    storedFileName: uploadResult.blobName,
       fileUrl,
+      sasUrl,
       submittedAt: new Date().toISOString()
     };
 
@@ -130,7 +151,7 @@ const fileUrl = await uploadToAzure(file);
         documentType
       },
      fileName: file.originalname,
-      fileUrl,
+      fileUrl : sasUrl
     });
   } catch (error) {
     console.error("Upload error :", error);
@@ -166,9 +187,9 @@ app.get("/submissions", (req, res) => {
 
 
 // make accessible
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-const PORT = 3000;
+
+const PORT = process.env.PORT || 3000;
    
 
 // start server
