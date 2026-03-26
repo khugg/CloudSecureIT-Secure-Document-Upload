@@ -1,3 +1,8 @@
+
+require("dotenv").config();
+const { BlobServiceClient } = require("@azure/storage-blob");
+
+
 const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
@@ -5,6 +10,11 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
+
+
+const connectionString = process.env.AZURE_STORAGE_CONNECTION_STRING;
+const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME || "documents";
+
 
 
 app.use(cors());
@@ -35,21 +45,44 @@ if (!fs.existsSync(submissionsFilePath)) {
 
 
 //  storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + file.originalname;
-    cb(null, uniqueName);
-  }
-});
-
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+
+async function uploadToAzure(file) {
+  const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+
+  await containerClient.createIfNotExists();
+
+  const blobName = Date.now() + "-" + file.originalname;
+
+  const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+  await blockBlobClient.uploadData(file.buffer);
+
+  return blockBlobClient.url;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // upload path(Road)
 
-app.post("/upload", upload.single("file"), (req, res) => {
+app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const file = req.file;
 
@@ -65,7 +98,7 @@ app.post("/upload", upload.single("file"), (req, res) => {
 
 
 
-const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
+const fileUrl = await uploadToAzure(file);
 
     const newSubmission = {
       id: Date.now(),
@@ -74,7 +107,7 @@ const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
       email,
       documentType,
       originalFileName: file.originalname,
-      storedFileName: file.filename,
+      storedFileName: file.originalname,
       fileUrl,
       submittedAt: new Date().toISOString()
     };
@@ -96,7 +129,7 @@ const fileUrl = `http://localhost:3000/uploads/${file.filename}`;
         email,
         documentType
       },
-      fileName: file.filename,
+     fileName: file.originalname,
       fileUrl,
     });
   } catch (error) {
