@@ -1,6 +1,15 @@
 
 require("dotenv").config();
 
+
+const nodeCrypto = require("crypto");
+
+if (!globalThis.crypto) {
+  globalThis.crypto = nodeCrypto.webcrypto;
+}
+
+
+
 const {
   BlobServiceClient,
   StorageSharedKeyCredential,
@@ -36,8 +45,6 @@ app.use(express.static(path.join(__dirname, "../public")));
 
 
 
-
-
 // create data if they don't exist
 if (!fs.existsSync("data")) {
   fs.mkdirSync("data");
@@ -55,6 +62,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 
+
+// Azure upload function
 async function uploadToAzure(file) {
   const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
   const containerClient = blobServiceClient.getContainerClient(containerName);
@@ -73,6 +82,8 @@ async function uploadToAzure(file) {
 }
 
 
+
+// Generate SAS URL for secure access
 function generateSasUrl(blobName) {
   const sharedKeyCredential = new StorageSharedKeyCredential(accountName, accountKey);
 
@@ -115,6 +126,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+
+      // Upload file to Azure Blob Storage
 
 const uploadResult = await uploadToAzure(file);
 const fileUrl = uploadResult.url;
