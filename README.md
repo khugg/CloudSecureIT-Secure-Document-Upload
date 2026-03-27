@@ -28,7 +28,7 @@ This project demonstrates real-world cloud integration, secure file handling, an
 - **Backend:** Node.js, Express.js
 - **File Handling:** Multer (memory storage)
 - **Cloud Storage:** Azure Blob Storage
-- **Security:** SAS (Shared Access Signature)
+- **Security:** Secure SAS (Shared Access Signature) URL
 - **Data Tracking:** JSON file (`data/submissions.json`)
 
 ---
