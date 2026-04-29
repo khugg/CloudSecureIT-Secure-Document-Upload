@@ -10,6 +10,9 @@ This project demonstrates real-world cloud integration, secure file handling, an
 
 ---
 
+APP LIVE : https://cloudsecureit-app-01-e0bsg6bpbrf2d3fd.canadacentral-01.azurewebsites.net/
+
+
 ## Features
 
 - Secure document upload form
